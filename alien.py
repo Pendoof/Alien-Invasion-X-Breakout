@@ -1,6 +1,6 @@
-import pygame
+import pygame  # type: ignore
 
-from pygame.sprite import Sprite
+from pygame.sprite import Sprite  # type: ignore
 
 
 class Alien(Sprite):

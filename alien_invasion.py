@@ -1,7 +1,7 @@
 import sys
 from time import sleep
 
-import pygame
+import pygame  # type: ignore
 
 from settings import Settings
 from game_stats import GameStats

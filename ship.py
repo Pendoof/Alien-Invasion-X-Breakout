@@ -1,5 +1,5 @@
-import pygame
-from pygame.sprite import Sprite
+import pygame  # type: ignore
+from pygame.sprite import Sprite  # type: ignore
 
 
 class Ship(Sprite):

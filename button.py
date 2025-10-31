@@ -1,4 +1,4 @@
-import pygame.font
+import pygame.font  # type: ignore
 
 
 class Button:

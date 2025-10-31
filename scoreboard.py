@@ -1,5 +1,5 @@
-import pygame.font
-from pygame.sprite import Group
+import pygame.font  # type: ignore
+from pygame.sprite import Group  # type: ignore
 
 from ship import Ship
 
