@@ -10,6 +10,7 @@ from button import Button
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
+from dead_alien import Dead_Alien
 
 
 class AlienInvasion:
@@ -33,6 +34,7 @@ class AlienInvasion:
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
+        self.dead_aliens = pygame.sprite.Group()
 
         self._create_fleet()
 
@@ -51,6 +53,7 @@ class AlienInvasion:
                 self.ship.update()
                 self._update_bullets()
                 self._update_aliens()
+                self._update_dead_aliens()
 
             self._update_screen()
             self.clock.tick(60)
@@ -82,9 +85,10 @@ class AlienInvasion:
             self.sb.prep_ships()
             self.game_active = True
 
-            # Get rid of any remaining bullets and aliens.
+            # Get rid of any remaining bullets, aliens, and dead aliens.
             self.bullets.empty()
             self.aliens.empty()
+            self.dead_aliens.empty()
 
             # Create a new fleet and center the ship.
             self._create_fleet()
@@ -137,6 +141,8 @@ class AlienInvasion:
 
         if collisions:
             for aliens in collisions.values():
+                for alien in aliens:
+                    self._create_dead_alien(alien.rect.x, alien.rect.y)
                 self.stats.score += self.settings.alien_points * len(aliens)
             self.sb.prep_score()
             self.sb.check_high_score()
@@ -161,6 +167,7 @@ class AlienInvasion:
             # Get rid of any remaining bullets and aliens.
             self.bullets.empty()
             self.aliens.empty()
+            self.dead_aliens.empty()
 
             # Create a new fleet and center the ship.
             self._create_fleet()
@@ -184,6 +191,42 @@ class AlienInvasion:
         # Look for aliens hitting the bottom of the screen.
         self._check_aliens_bottom()
 
+    def _update_dead_aliens(self):
+        """Move dead aliens down constantly"""
+        self.dead_aliens.update()
+
+        # Look for dead_alien-ship collisions
+        if pygame.sprite.spritecollideany(self.ship, self.dead_aliens):
+            self._ship_hit()
+
+        # Get rid of dead aliens that have disappeared.
+        for dead_alien in self.dead_aliens.copy():
+            if dead_alien.rect.top >= self.settings.screen_height:
+                self.dead_aliens.remove(dead_alien)
+
+        self._check_dead_alien_alien_collisions()
+
+    def _check_dead_alien_alien_collisions(self):
+        """Respond to dead_alien-alien collisions."""
+        # Remove any aliens that have collided with a dead alien
+        collisions = pygame.sprite.groupcollide(
+                self.dead_aliens, self.aliens, False, True)
+
+        if collisions:
+            for aliens in collisions.values():
+                self.stats.score += self.settings.alien_points * len(aliens)
+            self.sb.prep_score()
+            self.sb.check_high_score()
+
+        if not self.aliens:
+            # Create new fleet but keep existing dead aliens.
+            self._create_fleet()
+            self.settings.increase_speed()
+
+            # Increase level.
+            self.stats.level += 1
+            self.sb.prep_level()
+    
     def _check_aliens_bottom(self):
         """Check if any aliens have reached the bottom of the screen."""
         for alien in self.aliens.sprites():
@@ -217,6 +260,15 @@ class AlienInvasion:
         new_alien.rect.y = y_position
         self.aliens.add(new_alien)
 
+    def _create_dead_alien(self, x_position, y_position):
+        """Create a dead alien."""
+        new_dead_alien = Dead_Alien(self)
+        new_dead_alien.x = x_position
+        new_dead_alien.rect.x = x_position
+        new_dead_alien.rect.y = y_position
+        new_dead_alien.y = y_position
+        self.dead_aliens.add(new_dead_alien)
+
     def _check_fleet_edges(self):
         """Respond appropriately if any aliens have reached an edge."""
         for alien in self.aliens.sprites():
@@ -237,6 +289,7 @@ class AlienInvasion:
             bullet.draw_bullet()
         self.ship.blitme()
         self.aliens.draw(self.screen)
+        self.dead_aliens.draw(self.screen)
 
         # Draw the score information.
         self.sb.show_score()
