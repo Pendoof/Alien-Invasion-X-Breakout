@@ -267,6 +267,7 @@ class AlienInvasion:
         new_dead_alien.rect.x = x_position
         new_dead_alien.rect.y = y_position
         new_dead_alien.y = y_position
+        new_dead_alien.death_y = y_position
         self.dead_aliens.add(new_dead_alien)
 
     def _check_fleet_edges(self):
